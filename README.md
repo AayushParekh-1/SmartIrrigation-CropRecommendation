@@ -25,6 +25,18 @@ The system is broken down into three major components:
 
 ## 📡 How Data Flow Works
 
+### Functional Flow Diagram
+
+```text
+Soil Sensor ----\
+                > ESP32 ----> Flask API (/data)
+DHT11 ---------/   |
+                   |
+                   +--> LCD Display
+                   |
+                   +--> Green LED (Pump Indicator)
+```
+
 1. **Environmental Sensing:** The ESP32 continuously reads the temperature, humidity, and soil moisture levels.
 2. **Local Automation:** If the soil moisture drops below the hardcoded threshold (40%), the ESP32 switches ON the Water Pump (LED indicator).
 3. **Data Transmission:** The ESP32 formats the readings into a JSON payload and transmits it via an `HTTP POST` request to the Flask server's `/data` endpoint.
@@ -80,7 +92,7 @@ Smart_Irrigation+CropAdvisor/
 
 1. Open the `ESP-32Code.ino` in the **Arduino IDE**.
 2. Install the necessary libraries via the Library Manager:
-   - `HTTPClient`
+   - `HTTP Client`
    - `DHT sensor library` by Adafruit
    - `LiquidCrystal I2C`
    - `ArduinoJson`
@@ -90,8 +102,40 @@ Smart_Irrigation+CropAdvisor/
 4. **Hardware Wiring:**
    - DHT11 -> `GPIO 4`
    - Soil Moisture Sensor -> `GPIO 34` (Analog input)
-   - Pump/LED Indicator -> `GPIO 2`
-   - I2C Screen -> Standard I2C Pins (SDA, SCL)
+   - Pump/LED Indicator -> `GPIO 18`
+   - I2C Screen -> `SDA: GPIO 21`, `SCL: GPIO 22`
+
+   **Circuit Diagrams:**
+
+   ```text
+               +------------------------+
+               |         ESP32          |
+               |                        |
+   3V3 --------|--> VCC to Sensors      |
+   GND --------|--> Common GND          |
+   GPIO34 -----|<-- Soil Analog OUT     |
+   GPIO4 ------|<-> DHT11 DATA          |
+   GPIO21 -----|--> LCD SDA             |
+   GPIO22 -----|--> LCD SCL             |
+   GPIO18 -----|--> Green LED           |
+               +------------------------+
+   
+   Soil Sensor Module:
+   VCC  -------- 3V3 ESP32
+   GND  -------- GND ESP32
+   A0   -------- GPIO34
+   D0   -------- Not needed
+   
+   Green LED (Pump Indicator):
+   GPIO18 ----[220Ω]----|>|---- GND
+                        LED
+   
+   LCD1602 with I2C Backpack:
+   VCC  ------- 5V (or VIN)
+   GND  ------- GND
+   SDA  ------- GPIO21
+   SCL  ------- GPIO22
+   ```
 5. **Upload the code** to your ESP32 board.
 
 ## 🔮 Future Enhancements
